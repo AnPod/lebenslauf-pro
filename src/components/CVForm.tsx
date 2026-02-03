@@ -1,11 +1,19 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useRef } from 'react';
 import { CVData, PersonalInfo, Experience, Education, Skill } from '@/types/cv';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Switch } from '@/components/ui/switch';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Separator } from '@/components/ui/separator';
 import { 
-  Plus, Trash2, Upload, User, Briefcase, GraduationCap, 
-  Wrench, FileText, ChevronDown, ChevronUp, MapPin, 
-  Mail, Phone, Calendar, Globe
+  User, Briefcase, GraduationCap, Wrench, FileText, 
+  Plus, Trash2, Upload, MapPin, Mail, Phone, Calendar, Globe 
 } from 'lucide-react';
 
 interface CVFormProps {
@@ -13,36 +21,7 @@ interface CVFormProps {
   onChange: (data: CVData) => void;
 }
 
-interface SectionProps {
-  title: string;
-  icon: React.ReactNode;
-  children: React.ReactNode;
-  defaultOpen?: boolean;
-}
-
-function CollapsibleSection({ title, icon, children, defaultOpen = true }: SectionProps) {
-  const [isOpen, setIsOpen] = useState(defaultOpen);
-
-  return (
-    <div className="bg-white rounded-xl border border-gray-200 overflow-hidden mb-6 shadow-sm">
-      <button
-        onClick={() => setIsOpen(!isOpen)}
-        className="w-full flex items-center justify-between p-4 bg-gray-50 hover:bg-gray-100 transition-colors"
-      >
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
-            {icon}
-          </div>
-          <h3 className="text-lg font-semibold text-gray-900">{title}</h3>
-        </div>
-        {isOpen ? <ChevronUp className="w-5 h-5 text-gray-400" /> : <ChevronDown className="w-5 h-5 text-gray-400" />}
-      </button>
-      {isOpen && <div className="p-4">{children}</div>}
-    </div>
-  );
-}
-
-export default function CVForm({ data, onChange }: CVFormProps) {
+export function CVForm({ data, onChange }: CVFormProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handlePersonalChange = (field: keyof PersonalInfo, value: string) => {
@@ -150,426 +129,534 @@ export default function CVForm({ data, onChange }: CVFormProps) {
   };
 
   return (
-    <div className="space-y-6">
+    <Accordion type="multiple" defaultValue={['personal']} className="space-y-4">
       {/* Personal Information */}
-      <CollapsibleSection title="Persönliche Daten" icon={<User className="w-5 h-5 text-primary" />}>
-        <div className="space-y-6">
-          {/* Photo Upload */}
-          <div className="flex items-start gap-4">
-            <div
-              onClick={() => fileInputRef.current?.click()}
-              className="w-24 h-32 border-2 border-dashed border-gray-300 rounded-xl flex flex-col items-center justify-center cursor-pointer hover:border-primary hover:bg-primary/5 transition-all bg-gray-50"
-            >
-              {data.personal.photoUrl ? (
-                <img
-                  src={data.personal.photoUrl}
-                  alt="Profilfoto"
-                  className="w-full h-full object-cover rounded-xl"
+      <AccordionItem value="personal" className="border rounded-lg px-4">
+        <AccordionTrigger className="hover:no-underline py-4">
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
+              <User className="h-5 w-5 text-primary" />
+            </div>
+            <div className="text-left">
+              <CardTitle className="text-base">Persönliche Daten</CardTitle>
+              <p className="text-sm text-muted-foreground">Name, Kontakt, Adresse</p>
+            </div>
+          </div>
+        </AccordionTrigger>
+        <AccordionContent className="pb-4">
+          <div className="space-y-4">
+            {/* Photo Upload */}
+            <div className="flex items-start gap-4">
+              <div
+                onClick={() => fileInputRef.current?.click()}
+                className="w-24 h-32 border-2 border-dashed border-muted-foreground/25 rounded-lg flex flex-col items-center justify-center cursor-pointer hover:border-primary hover:bg-primary/5 transition-all bg-muted/50"
+              >
+                {data.personal.photoUrl ? (
+                  <img
+                    src={data.personal.photoUrl}
+                    alt="Profilfoto"
+                    className="w-full h-full object-cover rounded-lg"
+                  />
+                ) : (
+                  <>
+                    <Upload className="w-8 h-8 text-muted-foreground mb-2" />
+                    <span className="text-xs text-muted-foreground text-center">Foto<br/>hochladen</span>
+                  </>
+                )}
+              </div>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                onChange={handlePhotoUpload}
+                className="hidden"
+              />
+              <div className="flex-1">
+                <Label className="text-sm font-medium">Passfoto</Label>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Ein professionelles Foto für Ihren deutschen Lebenslauf.
+                </p>
+              </div>
+            </div>
+
+            <Separator />
+
+            {/* Name Fields */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="firstName">Vorname</Label>
+                <Input
+                  id="firstName"
+                  value={data.personal.firstName}
+                  onChange={(e) => handlePersonalChange('firstName', e.target.value)}
+                  placeholder="Max"
                 />
-              ) : (
-                <>
-                  <Upload className="w-8 h-8 text-gray-400 mb-2" />
-                  <span className="text-xs text-gray-500 text-center">Foto<br/>hochladen</span>
-                </>
-              )}
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="lastName">Nachname</Label>
+                <Input
+                  id="lastName"
+                  value={data.personal.lastName}
+                  onChange={(e) => handlePersonalChange('lastName', e.target.value)}
+                  placeholder="Mustermann"
+                />
+              </div>
             </div>
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="image/*"
-              onChange={handlePhotoUpload}
-              className="hidden"
-            />
-            <div className="flex-1">
-              <p className="text-sm font-medium text-gray-700 mb-1">Passfoto</p>
-              <p className="text-xs text-gray-500">Ein professionelles Foto für Ihren deutschen Lebenslauf. Wird in der oberen rechten Ecke platziert.</p>
-            </div>
-          </div>
 
-          {/* Name Fields */}
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Vorname</label>
-              <input
-                type="text"
-                value={data.personal.firstName}
-                onChange={(e) => handlePersonalChange('firstName', e.target.value)}
-                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
-                placeholder="Max"
-              />
+            {/* Contact Fields */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="email" className="flex items-center gap-2">
+                  <Mail className="w-4 h-4 text-muted-foreground" />
+                  E-Mail
+                </Label>
+                <Input
+                  id="email"
+                  type="email"
+                  value={data.personal.email}
+                  onChange={(e) => handlePersonalChange('email', e.target.value)}
+                  placeholder="max.mustermann@email.de"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="phone" className="flex items-center gap-2">
+                  <Phone className="w-4 h-4 text-muted-foreground" />
+                  Telefon
+                </Label>
+                <Input
+                  id="phone"
+                  type="tel"
+                  value={data.personal.phone}
+                  onChange={(e) => handlePersonalChange('phone', e.target.value)}
+                  placeholder="+49 123 4567890"
+                />
+              </div>
             </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Nachname</label>
-              <input
-                type="text"
-                value={data.personal.lastName}
-                onChange={(e) => handlePersonalChange('lastName', e.target.value)}
-                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
-                placeholder="Mustermann"
-              />
-            </div>
-          </div>
 
-          {/* Contact Fields */}
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
-                <Mail className="w-4 h-4 text-gray-400" />
-                E-Mail
-              </label>
-              <input
-                type="email"
-                value={data.personal.email}
-                onChange={(e) => handlePersonalChange('email', e.target.value)}
-                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
-                placeholder="max.mustermann@email.de"
+            {/* Address */}
+            <div className="space-y-2">
+              <Label htmlFor="address" className="flex items-center gap-2">
+                <MapPin className="w-4 h-4 text-muted-foreground" />
+                Adresse
+              </Label>
+              <Input
+                id="address"
+                value={data.personal.address}
+                onChange={(e) => handlePersonalChange('address', e.target.value)}
+                placeholder="Musterstraße 123"
+                className="mb-2"
               />
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                <Input
+                  value={data.personal.postalCode}
+                  onChange={(e) => handlePersonalChange('postalCode', e.target.value)}
+                  placeholder="10115"
+                />
+                <Input
+                  className="col-span-1 sm:col-span-2"
+                  value={data.personal.city}
+                  onChange={(e) => handlePersonalChange('city', e.target.value)}
+                  placeholder="Berlin"
+                />
+              </div>
             </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
-                <Phone className="w-4 h-4 text-gray-400" />
-                Telefon
-              </label>
-              <input
-                type="tel"
-                value={data.personal.phone}
-                onChange={(e) => handlePersonalChange('phone', e.target.value)}
-                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
-                placeholder="+49 123 4567890"
-              />
-            </div>
-          </div>
 
-          {/* Address */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
-              <MapPin className="w-4 h-4 text-gray-400" />
-              Adresse
-            </label>
-            <input
-              type="text"
-              value={data.personal.address}
-              onChange={(e) => handlePersonalChange('address', e.target.value)}
-              className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-all mb-3"
-              placeholder="Musterstraße 123"
-            />
-            <div className="grid grid-cols-3 gap-3">
-              <input
-                type="text"
-                value={data.personal.postalCode}
-                onChange={(e) => handlePersonalChange('postalCode', e.target.value)}
-                className="px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
-                placeholder="10115"
-              />
-              <input
-                type="text"
-                value={data.personal.city}
-                onChange={(e) => handlePersonalChange('city', e.target.value)}
-                className="col-span-2 px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
-                placeholder="Berlin"
-              />
+            {/* Birth Info */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="dateOfBirth" className="flex items-center gap-2">
+                  <Calendar className="w-4 h-4 text-muted-foreground" />
+                  Geburtsdatum
+                </Label>
+                <Input
+                  id="dateOfBirth"
+                  type="date"
+                  value={data.personal.dateOfBirth}
+                  onChange={(e) => handlePersonalChange('dateOfBirth', e.target.value)}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="placeOfBirth">Geburtsort</Label>
+                <Input
+                  id="placeOfBirth"
+                  value={data.personal.placeOfBirth}
+                  onChange={(e) => handlePersonalChange('placeOfBirth', e.target.value)}
+                  placeholder="München"
+                />
+              </div>
             </div>
-          </div>
 
-          {/* Birth Info */}
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
-                <Calendar className="w-4 h-4 text-gray-400" />
-                Geburtsdatum
-              </label>
-              <input
-                type="date"
-                value={data.personal.dateOfBirth}
-                onChange={(e) => handlePersonalChange('dateOfBirth', e.target.value)}
-                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Geburtsort</label>
-              <input
-                type="text"
-                value={data.personal.placeOfBirth}
-                onChange={(e) => handlePersonalChange('placeOfBirth', e.target.value)}
-                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
-                placeholder="München"
+            {/* Nationality */}
+            <div className="space-y-2">
+              <Label htmlFor="nationality" className="flex items-center gap-2">
+                <Globe className="w-4 h-4 text-muted-foreground" />
+                Staatsangehörigkeit
+              </Label>
+              <Input
+                id="nationality"
+                value={data.personal.nationality}
+                onChange={(e) => handlePersonalChange('nationality', e.target.value)}
+                placeholder="Deutsch"
               />
             </div>
           </div>
-
-          {/* Nationality */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
-              <Globe className="w-4 h-4 text-gray-400" />
-              Staatsangehörigkeit
-            </label>
-            <input
-              type="text"
-              value={data.personal.nationality}
-              onChange={(e) => handlePersonalChange('nationality', e.target.value)}
-              className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
-              placeholder="Deutsch"
-            />
-          </div>
-        </div>
-      </CollapsibleSection>
+        </AccordionContent>
+      </AccordionItem>
 
       {/* Profile/Summary */}
-      <CollapsibleSection title="Profil / Zusammenfassung" icon={<FileText className="w-5 h-5 text-primary" />}>
-        <div>
-          <p className="text-sm text-gray-500 mb-3">Eine kurze Zusammenfassung Ihrer Qualifikationen und Karriereziele. Dieser Abschnitt erscheint direkt unter Ihren persönlichen Daten.</p>
-          <textarea
-            value={data.summary}
-            onChange={(e) => onChange({ ...data, summary: e.target.value })}
-            rows={4}
-            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-all resize-none"
-            placeholder="Erfahrener Softwareentwickler mit 5+ Jahren Erfahrung in der Entwicklung skalierbarer Webanwendungen..."
-          />
-        </div>
-      </CollapsibleSection>
+      <AccordionItem value="summary" className="border rounded-lg px-4">
+        <AccordionTrigger className="hover:no-underline py-4">
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
+              <FileText className="h-5 w-5 text-primary" />
+            </div>
+            <div className="text-left">
+              <CardTitle className="text-base">Profil / Zusammenfassung</CardTitle>
+              <p className="text-sm text-muted-foreground">Kurze Vorstellung</p>
+            </div>
+          </div>
+        </AccordionTrigger>
+        <AccordionContent className="pb-4">
+          <div className="space-y-2">
+            <p className="text-sm text-muted-foreground">
+              Eine kurze Zusammenfassung Ihrer Qualifikationen und Karriereziele.
+            </p>
+            <Textarea
+              value={data.summary}
+              onChange={(e) => onChange({ ...data, summary: e.target.value })}
+              placeholder="Erfahrener Softwareentwickler mit 5+ Jahren Erfahrung..."
+              rows={4}
+            />
+          </div>
+        </AccordionContent>
+      </AccordionItem>
 
       {/* Experience */}
-      <CollapsibleSection title="Berufserfahrung" icon={<Briefcase className="w-5 h-5 text-primary" />}>
-        <div className="space-y-4">
-          {data.experience.length === 0 && (
-            <p className="text-sm text-gray-500 text-center py-4">Noch keine Einträge. Fügen Sie Ihre erste Position hinzu.</p>
-          )}
-          {data.experience.map((exp, index) => (
-            <div key={exp.id} className="bg-gray-50 rounded-lg p-4 border border-gray-200">
-              <div className="flex justify-between items-start mb-4">
-                <span className="text-xs font-medium text-primary bg-primary/10 px-2 py-1 rounded">Position {index + 1}</span>
-                <button
-                  onClick={() => removeExperience(exp.id)}
-                  className="text-red-500 hover:text-red-700 p-1 hover:bg-red-50 rounded transition-colors"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </button>
-              </div>
-              <div className="grid grid-cols-2 gap-4 mb-4">
-                <input
-                  type="text"
-                  placeholder="Unternehmen"
-                  value={exp.company}
-                  onChange={(e) => updateExperience(exp.id, 'company', e.target.value)}
-                  className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-                />
-                <input
-                  type="text"
-                  placeholder="Position"
-                  value={exp.position}
-                  onChange={(e) => updateExperience(exp.id, 'position', e.target.value)}
-                  className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-                />
-              </div>
-              <div className="grid grid-cols-2 gap-4 mb-4">
-                <input
-                  type="text"
-                  placeholder="Ort"
-                  value={exp.location}
-                  onChange={(e) => updateExperience(exp.id, 'location', e.target.value)}
-                  className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-                />
-                <div className="flex items-center gap-2">
-                  <input
-                    type="month"
-                    value={exp.startDate}
-                    onChange={(e) => updateExperience(exp.id, 'startDate', e.target.value)}
-                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-                  />
-                  <span className="text-gray-400">bis</span>
-                  {!exp.current ? (
-                    <input
-                      type="month"
-                      value={exp.endDate}
-                      onChange={(e) => updateExperience(exp.id, 'endDate', e.target.value)}
-                      className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-                    />
-                  ) : (
-                    <span className="px-3 py-2 text-sm text-gray-600 bg-gray-100 rounded-lg">heute</span>
-                  )}
-                </div>
-              </div>
-              <label className="flex items-center gap-2 mb-3">
-                <input
-                  type="checkbox"
-                  checked={exp.current}
-                  onChange={(e) => updateExperience(exp.id, 'current', e.target.checked)}
-                  className="rounded border-gray-300 text-primary focus:ring-primary"
-                />
-                <span className="text-sm text-gray-700">Aktuelle Position</span>
-              </label>
-              <textarea
-                placeholder="Aufgaben und Verantwortlichkeiten..."
-                value={exp.description}
-                onChange={(e) => updateExperience(exp.id, 'description', e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent resize-none"
-                rows={3}
-              />
+      <AccordionItem value="experience" className="border rounded-lg px-4">
+        <AccordionTrigger className="hover:no-underline py-4">
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
+              <Briefcase className="h-5 w-5 text-primary" />
             </div>
-          ))}
-          <button
-            onClick={addExperience}
-            className="w-full flex items-center justify-center gap-2 px-4 py-3 border-2 border-dashed border-gray-300 rounded-lg text-gray-600 hover:border-primary hover:text-primary hover:bg-primary/5 transition-all"
-          >
-            <Plus className="w-4 h-4" />
-            Position hinzufügen
-          </button>
-        </div>
-      </CollapsibleSection>
+            <div className="text-left">
+              <CardTitle className="text-base">Berufserfahrung</CardTitle>
+              <p className="text-sm text-muted-foreground">
+                {data.experience.length} Position{data.experience.length !== 1 ? 'en' : ''}
+              </p>
+            </div>
+          </div>
+        </AccordionTrigger>
+        <AccordionContent className="pb-4">
+          <div className="space-y-4">
+            {data.experience.length === 0 && (
+              <p className="text-sm text-muted-foreground text-center py-4">
+                Noch keine Einträge. Fügen Sie Ihre erste Position hinzu.
+              </p>
+            )}
+            {data.experience.map((exp, index) => (
+              <Card key={exp.id} className="relative">
+                <CardHeader className="pb-3">
+                  <div className="flex items-start justify-between">
+                    <Badge variant="secondary">Position {index + 1}</Badge>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => removeExperience(exp.id)}
+                      className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </CardHeader>
+                <CardContent className="space-y-4 pt-0">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label>Unternehmen</Label>
+                      <Input
+                        value={exp.company}
+                        onChange={(e) => updateExperience(exp.id, 'company', e.target.value)}
+                        placeholder="Unternehmen"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Position</Label>
+                      <Input
+                        value={exp.position}
+                        onChange={(e) => updateExperience(exp.id, 'position', e.target.value)}
+                        placeholder="Position"
+                      />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label>Ort</Label>
+                      <Input
+                        value={exp.location}
+                        onChange={(e) => updateExperience(exp.id, 'location', e.target.value)}
+                        placeholder="Ort"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Zeitraum</Label>
+                      <div className="flex items-center gap-2">
+                        <Input
+                          type="month"
+                          value={exp.startDate}
+                          onChange={(e) => updateExperience(exp.id, 'startDate', e.target.value)}
+                          className="flex-1"
+                        />
+                        <span className="text-muted-foreground">bis</span>
+                        {!exp.current ? (
+                          <Input
+                            type="month"
+                            value={exp.endDate}
+                            onChange={(e) => updateExperience(exp.id, 'endDate', e.target.value)}
+                            className="flex-1"
+                          />
+                        ) : (
+                          <span className="text-sm text-muted-foreground px-2">heute</span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Switch
+                      id={`current-${exp.id}`}
+                      checked={exp.current}
+                      onCheckedChange={(checked) => updateExperience(exp.id, 'current', checked)}
+                    />
+                    <Label htmlFor={`current-${exp.id}`} className="text-sm">Aktuelle Position</Label>
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Beschreibung</Label>
+                    <Textarea
+                      value={exp.description}
+                      onChange={(e) => updateExperience(exp.id, 'description', e.target.value)}
+                      placeholder="Aufgaben und Verantwortlichkeiten..."
+                      rows={3}
+                    />
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+            <Button
+              variant="outline"
+              onClick={addExperience}
+              className="w-full"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Position hinzufügen
+            </Button>
+          </div>
+        </AccordionContent>
+      </AccordionItem>
 
       {/* Education */}
-      <CollapsibleSection title="Ausbildung" icon={<GraduationCap className="w-5 h-5 text-primary" />}>
-        <div className="space-y-4">
-          {data.education.length === 0 && (
-            <p className="text-sm text-gray-500 text-center py-4">Noch keine Einträge. Fügen Sie Ihre erste Ausbildung hinzu.</p>
-          )}
-          {data.education.map((edu, index) => (
-            <div key={edu.id} className="bg-gray-50 rounded-lg p-4 border border-gray-200">
-              <div className="flex justify-between items-start mb-4">
-                <span className="text-xs font-medium text-primary bg-primary/10 px-2 py-1 rounded">Ausbildung {index + 1}</span>
-                <button
-                  onClick={() => removeEducation(edu.id)}
-                  className="text-red-500 hover:text-red-700 p-1 hover:bg-red-50 rounded transition-colors"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </button>
-              </div>
-              <div className="grid grid-cols-2 gap-4 mb-4">
-                <input
-                  type="text"
-                  placeholder="Institution / Universität"
-                  value={edu.institution}
-                  onChange={(e) => updateEducation(edu.id, 'institution', e.target.value)}
-                  className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-                />
-                <input
-                  type="text"
-                  placeholder="Abschluss (z.B. Bachelor)"
-                  value={edu.degree}
-                  onChange={(e) => updateEducation(edu.id, 'degree', e.target.value)}
-                  className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-                />
-              </div>
-              <div className="grid grid-cols-2 gap-4 mb-4">
-                <input
-                  type="text"
-                  placeholder="Studienfach"
-                  value={edu.field}
-                  onChange={(e) => updateEducation(edu.id, 'field', e.target.value)}
-                  className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-                />
-                <input
-                  type="text"
-                  placeholder="Ort"
-                  value={edu.location}
-                  onChange={(e) => updateEducation(edu.id, 'location', e.target.value)}
-                  className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-                />
-              </div>
-              <div className="flex items-center gap-2 mb-3">
-                <input
-                  type="month"
-                  value={edu.startDate}
-                  onChange={(e) => updateEducation(edu.id, 'startDate', e.target.value)}
-                  className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-                />
-                <span className="text-gray-400">bis</span>
-                {!edu.current ? (
-                  <input
-                    type="month"
-                    value={edu.endDate}
-                    onChange={(e) => updateEducation(edu.id, 'endDate', e.target.value)}
-                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-                  />
-                ) : (
-                  <span className="px-3 py-2 text-sm text-gray-600 bg-gray-100 rounded-lg">heute</span>
-                )}
-              </div>
-              <label className="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  checked={edu.current}
-                  onChange={(e) => updateEducation(edu.id, 'current', e.target.checked)}
-                  className="rounded border-gray-300 text-primary focus:ring-primary"
-                />
-                <span className="text-sm text-gray-700">Aktuell</span>
-              </label>
+      <AccordionItem value="education" className="border rounded-lg px-4">
+        <AccordionTrigger className="hover:no-underline py-4">
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
+              <GraduationCap className="h-5 w-5 text-primary" />
             </div>
-          ))}
-          <button
-            onClick={addEducation}
-            className="w-full flex items-center justify-center gap-2 px-4 py-3 border-2 border-dashed border-gray-300 rounded-lg text-gray-600 hover:border-primary hover:text-primary hover:bg-primary/5 transition-all"
-          >
-            <Plus className="w-4 h-4" />
-            Ausbildung hinzufügen
-          </button>
-        </div>
-      </CollapsibleSection>
+            <div className="text-left">
+              <CardTitle className="text-base">Ausbildung</CardTitle>
+              <p className="text-sm text-muted-foreground">
+                {data.education.length} Eintrag{data.education.length !== 1 ? 'e' : ''}
+              </p>
+            </div>
+          </div>
+        </AccordionTrigger>
+        <AccordionContent className="pb-4">
+          <div className="space-y-4">
+            {data.education.length === 0 && (
+              <p className="text-sm text-muted-foreground text-center py-4">
+                Noch keine Einträge. Fügen Sie Ihre erste Ausbildung hinzu.
+              </p>
+            )}
+            {data.education.map((edu, index) => (
+              <Card key={edu.id} className="relative">
+                <CardHeader className="pb-3">
+                  <div className="flex items-start justify-between">
+                    <Badge variant="secondary">Ausbildung {index + 1}</Badge>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => removeEducation(edu.id)}
+                      className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </CardHeader>
+                <CardContent className="space-y-4 pt-0">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label>Institution</Label>
+                      <Input
+                        value={edu.institution}
+                        onChange={(e) => updateEducation(edu.id, 'institution', e.target.value)}
+                        placeholder="Universität / Schule"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Abschluss</Label>
+                      <Input
+                        value={edu.degree}
+                        onChange={(e) => updateEducation(edu.id, 'degree', e.target.value)}
+                        placeholder="Bachelor, Master, etc."
+                      />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label>Studienfach</Label>
+                      <Input
+                        value={edu.field}
+                        onChange={(e) => updateEducation(edu.id, 'field', e.target.value)}
+                        placeholder="Fachrichtung"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Ort</Label>
+                      <Input
+                        value={edu.location}
+                        onChange={(e) => updateEducation(edu.id, 'location', e.target.value)}
+                        placeholder="Ort"
+                      />
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Zeitraum</Label>
+                    <div className="flex items-center gap-2">
+                      <Input
+                        type="month"
+                        value={edu.startDate}
+                        onChange={(e) => updateEducation(edu.id, 'startDate', e.target.value)}
+                        className="flex-1"
+                      />
+                      <span className="text-muted-foreground">bis</span>
+                      {!edu.current ? (
+                        <Input
+                          type="month"
+                          value={edu.endDate}
+                          onChange={(e) => updateEducation(edu.id, 'endDate', e.target.value)}
+                          className="flex-1"
+                        />
+                      ) : (
+                        <span className="text-sm text-muted-foreground px-2">heute</span>
+                      )}
+                    </div>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Switch
+                      id={`edu-current-${edu.id}`}
+                      checked={edu.current}
+                      onCheckedChange={(checked) => updateEducation(edu.id, 'current', checked)}
+                    />
+                    <Label htmlFor={`edu-current-${edu.id}`} className="text-sm">Aktuell</Label>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+            <Button
+              variant="outline"
+              onClick={addEducation}
+              className="w-full"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Ausbildung hinzufügen
+            </Button>
+          </div>
+        </AccordionContent>
+      </AccordionItem>
 
       {/* Skills */}
-      <CollapsibleSection title="Fähigkeiten" icon={<Wrench className="w-5 h-5 text-primary" />}>
-        <div className="space-y-3">
-          {data.skills.length === 0 && (
-            <p className="text-sm text-gray-500 text-center py-4">Noch keine Fähigkeiten. Fügen Sie Ihre ersten Fähigkeiten hinzu.</p>
-          )}
-          {data.skills.map((skill) => (
-            <div key={skill.id} className="flex items-center gap-3 bg-gray-50 rounded-lg p-3 border border-gray-200">
-              <input
-                type="text"
-                placeholder="Fähigkeit (z.B. Deutsch, Python)"
-                value={skill.name}
-                onChange={(e) => updateSkill(skill.id, 'name', e.target.value)}
-                className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-              />
-              <select
-                value={skill.level}
-                onChange={(e) => updateSkill(skill.id, 'level', e.target.value)}
-                className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent w-40"
-              >
-                {skill.category === 'language' ? (
-                  <>
-                    <option value="A1">A1 - Anfänger</option>
-                    <option value="A2">A2 - Grundlegend</option>
-                    <option value="B1">B1 - Mittelstufe</option>
-                    <option value="B2">B2 - Gute Mittelstufe</option>
-                    <option value="C1">C1 - Fortgeschritten</option>
-                    <option value="C2">C2 - Fließend</option>
-                  </>
-                ) : (
-                  <>
-                    <option value="Grundkenntnisse">Grundkenntnisse</option>
-                    <option value="Gut">Gut</option>
-                    <option value="Sehr gut">Sehr gut</option>
-                    <option value="Fließend">Fließend / Experte</option>
-                  </>
-                )}
-              </select>
-              <select
-                value={skill.category}
-                onChange={(e) => updateSkill(skill.id, 'category', e.target.value)}
-                className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent w-32"
-              >
-                <option value="technical">Technisch</option>
-                <option value="language">Sprache</option>
-                <option value="soft">Soft Skills</option>
-              </select>
-              <button
-                onClick={() => removeSkill(skill.id)}
-                className="p-2 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors"
-              >
-                <Trash2 className="w-4 h-4" />
-              </button>
+      <AccordionItem value="skills" className="border rounded-lg px-4">
+        <AccordionTrigger className="hover:no-underline py-4">
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
+              <Wrench className="h-5 w-5 text-primary" />
             </div>
-          ))}
-          <button
-            onClick={addSkill}
-            className="w-full flex items-center justify-center gap-2 px-4 py-3 border-2 border-dashed border-gray-300 rounded-lg text-gray-600 hover:border-primary hover:text-primary hover:bg-primary/5 transition-all"
-          >
-            <Plus className="w-4 h-4" />
-            Fähigkeit hinzufügen
-          </button>
-        </div>
-      </CollapsibleSection>
-    </div>
+            <div className="text-left">
+              <CardTitle className="text-base">Fähigkeiten</CardTitle>
+              <p className="text-sm text-muted-foreground">
+                {data.skills.length} Fähigkeit{data.skills.length !== 1 ? 'en' : ''}
+              </p>
+            </div>
+          </div>
+        </AccordionTrigger>
+        <AccordionContent className="pb-4">
+          <div className="space-y-3">
+            {data.skills.length === 0 && (
+              <p className="text-sm text-muted-foreground text-center py-4">
+                Noch keine Fähigkeiten. Fügen Sie Ihre ersten Fähigkeiten hinzu.
+              </p>
+            )}
+            {data.skills.map((skill) => (
+              <Card key={skill.id} className="p-4">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+                  <Input
+                    placeholder="Fähigkeit (z.B. Deutsch, Python)"
+                    value={skill.name}
+                    onChange={(e) => updateSkill(skill.id, 'name', e.target.value)}
+                    className="flex-1"
+                  />
+                  <div className="flex items-center gap-2 w-full sm:w-auto">
+                    <select
+                      value={skill.level}
+                      onChange={(e) => updateSkill(skill.id, 'level', e.target.value)}
+                      className="flex-1 sm:w-32 h-9 rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm"
+                    >
+                      {skill.category === 'language' ? (
+                        <>
+                          <option value="A1">A1</option>
+                          <option value="A2">A2</option>
+                          <option value="B1">B1</option>
+                          <option value="B2">B2</option>
+                          <option value="C1">C1</option>
+                          <option value="C2">C2</option>
+                        </>
+                      ) : (
+                        <>
+                          <option value="Grundkenntnisse">Grundkenntnisse</option>
+                          <option value="Gut">Gut</option>
+                          <option value="Sehr gut">Sehr gut</option>
+                          <option value="Fließend">Fließend</option>
+                        </>
+                      )}
+                    </select>
+                    <select
+                      value={skill.category}
+                      onChange={(e) => updateSkill(skill.id, 'category', e.target.value)}
+                      className="w-28 h-9 rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm"
+                    >
+                      <option value="technical">Technisch</option>
+                      <option value="language">Sprache</option>
+                      <option value="soft">Soft Skills</option>
+                    </select>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => removeSkill(skill.id)}
+                      className="h-9 w-9 text-destructive hover:text-destructive hover:bg-destructive/10"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              </Card>
+            ))}
+            <Button
+              variant="outline"
+              onClick={addSkill}
+              className="w-full"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Fähigkeit hinzufügen
+            </Button>
+          </div>
+        </AccordionContent>
+      </AccordionItem>
+    </Accordion>
   );
 }

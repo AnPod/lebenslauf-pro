@@ -1,11 +1,17 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import CVForm from '@/components/CVForm';
-import CVPreview from '@/components/CVPreview';
-import CoverLetterGenerator from '@/components/CoverLetterGenerator';
 import { CVData } from '@/types/cv';
-import { Save, Check, FileText, PenTool, Sparkles } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { FileText, Sparkles, Save, Menu, X } from 'lucide-react';
+import { CVForm } from '@/components/CVForm';
+import { CVPreview } from '@/components/CVPreview';
+import { CoverLetterGenerator } from '@/components/CoverLetterGenerator';
+import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 
 const defaultCVData: CVData = {
   personal: {
@@ -28,11 +34,10 @@ const defaultCVData: CVData = {
 
 export default function Home() {
   const [cvData, setCVData] = useState<CVData>(defaultCVData);
-  const [activeTab, setActiveTab] = useState<'editor' | 'coverletter'>('editor');
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const [isClient, setIsClient] = useState(false);
+  const [mobilePreviewOpen, setMobilePreviewOpen] = useState(false);
 
-  // Load from localStorage on mount
   useEffect(() => {
     setIsClient(true);
     const saved = localStorage.getItem('lebenslauf-data');
@@ -45,7 +50,6 @@ export default function Home() {
     }
   }, []);
 
-  // Auto-save to localStorage
   useEffect(() => {
     if (isClient) {
       localStorage.setItem('lebenslauf-data', JSON.stringify(cvData));
@@ -54,91 +58,89 @@ export default function Home() {
   }, [cvData, isClient]);
 
   if (!isClient) {
-    return null; // Prevent hydration mismatch
+    return null;
   }
 
   return (
-    <div className="min-h-screen bg-gray-100">
+    <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className="bg-white border-b border-gray-200 sticky top-0 z-50">
-        <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            {/* Logo */}
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center">
-                <FileText className="w-6 h-6 text-white" />
-              </div>
-              <div>
-                <h1 className="text-xl font-bold text-gray-900">Lebenslauf Pro</h1>
-                <p className="text-xs text-gray-500">Professioneller Lebenslauf Generator</p>
-              </div>
+      <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <div className="container flex h-14 items-center justify-between">
+          <div className="flex items-center gap-2">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary">
+              <FileText className="h-4 w-4 text-primary-foreground" />
             </div>
+            <span className="font-semibold hidden sm:inline">Lebenslauf Pro</span>
+          </div>
 
-            {/* Navigation */}
-            <nav className="flex items-center gap-1 bg-gray-100 p-1 rounded-lg">
-              <button
-                onClick={() => setActiveTab('editor')}
-                className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-all ${
-                  activeTab === 'editor'
-                    ? 'bg-white text-primary shadow-sm'
-                    : 'text-gray-600 hover:text-gray-900'
-                }`}
-              >
-                <PenTool className="w-4 h-4" />
-                Editor
-              </button>
-              <button
-                onClick={() => setActiveTab('coverletter')}
-                className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-all ${
-                  activeTab === 'coverletter'
-                    ? 'bg-white text-primary shadow-sm'
-                    : 'text-gray-600 hover:text-gray-900'
-                }`}
-              >
-                <Sparkles className="w-4 h-4" />
-                KI-Anschreiben
-              </button>
-            </nav>
-
-            {/* Save Status */}
-            <div className="flex items-center gap-2 text-sm text-gray-500">
-              {lastSaved && (
-                <>
-                  <Check className="w-4 h-4 text-green-500" />
-                  <span>Gespeichert {lastSaved.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' })}</span>
-                </>
-              )}
-            </div>
+          <div className="flex items-center gap-2">
+            {lastSaved && (
+              <Badge variant="secondary" className="hidden sm:flex items-center gap-1">
+                <Save className="h-3 w-3" />
+                <span className="text-xs">
+                  {lastSaved.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' })}
+                </span>
+              </Badge>
+            )}
+            
+            {/* Mobile Preview Toggle */}
+            <Sheet open={mobilePreviewOpen} onOpenChange={setMobilePreviewOpen}>
+              <SheetTrigger asChild>
+                <Button variant="outline" size="sm" className="lg:hidden">
+                  <Menu className="h-4 w-4 mr-2" />
+                  Vorschau
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="right" className="w-full sm:w-[400px] p-0">
+                <ScrollArea className="h-full">
+                  <div className="p-4">
+                    <CVPreview data={cvData} />
+                  </div>
+                </ScrollArea>
+              </SheetContent>
+            </Sheet>
           </div>
         </div>
       </header>
 
       {/* Main Content */}
-      <main className="max-w-[1600px] mx-auto">
-        {activeTab === 'editor' ? (
-          <div className="flex h-[calc(100vh-64px)]">
-            {/* Left Panel - Form */}
-            <div className="w-1/2 overflow-y-auto border-r border-gray-200 bg-white">
-              <div className="p-6">
-                <CVForm data={cvData} onChange={setCVData} />
-              </div>
-            </div>
+      <main className="container py-4 sm:py-6">
+        <Tabs defaultValue="editor" className="space-y-4">
+          <TabsList className="grid w-full max-w-md mx-auto grid-cols-2">
+            <TabsTrigger value="editor" className="gap-2">
+              <FileText className="h-4 w-4" />
+              <span className="hidden sm:inline">Lebenslauf</span>
+              <span className="sm:hidden">CV</span>
+            </TabsTrigger>
+            <TabsTrigger value="coverletter" className="gap-2">
+              <Sparkles className="h-4 w-4" />
+              <span className="hidden sm:inline">Anschreiben</span>
+              <span className="sm:hidden">KI</span>
+            </TabsTrigger>
+          </TabsList>
 
-            {/* Right Panel - Preview */}
-            <div className="w-1/2 overflow-y-auto bg-gray-100">
-              <div className="p-6">
-                <div className="sticky top-0 z-10 bg-gray-100 pb-4">
-                  <h2 className="text-sm font-medium text-gray-500 uppercase tracking-wider">Live-Vorschau</h2>
-                </div>
-                <CVPreview data={cvData} />
+          <TabsContent value="editor" className="space-y-4">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6">
+              {/* Form Section */}
+              <Card className="p-4 sm:p-6">
+                <CVForm data={cvData} onChange={setCVData} />
+              </Card>
+
+              {/* Preview Section - Hidden on mobile, visible on lg */}
+              <div className="hidden lg:block">
+                <Card className="p-4 sticky top-20">
+                  <ScrollArea className="h-[calc(100vh-180px)]">
+                    <CVPreview data={cvData} />
+                  </ScrollArea>
+                </Card>
               </div>
             </div>
-          </div>
-        ) : (
-          <div className="p-6">
+          </TabsContent>
+
+          <TabsContent value="coverletter">
             <CoverLetterGenerator cvData={cvData} />
-          </div>
-        )}
+          </TabsContent>
+        </Tabs>
       </main>
     </div>
   );

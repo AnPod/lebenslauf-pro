@@ -1,44 +1,42 @@
 'use client';
 
 import { CVData } from '@/types/cv';
-import { Download, FileText } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+import { Download } from 'lucide-react';
 
 interface CVPreviewProps {
   data: CVData;
 }
 
-export default function CVPreview({ data }: CVPreviewProps) {
+export function CVPreview({ data }: CVPreviewProps) {
   const formatDate = (dateString: string) => {
     if (!dateString) return '';
     const date = new Date(dateString);
     return date.toLocaleDateString('de-DE', { month: 'long', year: 'numeric' });
   };
 
-  const handleDownloadPDF = () => {
+  const handlePrint = () => {
     window.print();
   };
 
   return (
-    <div className="max-w-[210mm] mx-auto">
+    <div className="space-y-4">
       {/* Print Button */}
-      <div className="flex justify-end mb-4 print:hidden">
-        <button
-          onClick={handleDownloadPDF}
-          className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg hover:bg-secondary transition-colors shadow-sm"
-        >
-          <Download className="w-4 h-4" />
-          Als PDF drucken
-        </button>
+      <div className="flex justify-end print:hidden">
+        <Button onClick={handlePrint} size="sm">
+          <Download className="w-4 h-4 mr-2" />
+          PDF Drucken
+        </Button>
       </div>
 
       {/* A4 Page */}
-      <div 
-        className="bg-white shadow-lg mx-auto print:shadow-none"
+      <Card 
+        className="bg-white p-8 mx-auto print:shadow-none print:border-none"
         style={{ 
           width: '210mm', 
-          minHeight: '297mm', 
-          padding: '15mm',
-          boxSizing: 'border-box'
+          minHeight: '297mm',
+          maxWidth: '100%'
         }}
       >
         {/* Header with Photo */}
@@ -48,7 +46,7 @@ export default function CVPreview({ data }: CVPreviewProps) {
               <img
                 src={data.personal.photoUrl}
                 alt="Profilfoto"
-                className="w-28 h-36 object-cover rounded-sm shadow-sm"
+                className="w-28 h-36 object-cover rounded-sm"
               />
             </div>
           )}
@@ -172,7 +170,7 @@ export default function CVPreview({ data }: CVPreviewProps) {
             Bewerbungsverfahrens verarbeitet werden.
           </p>
         </footer>
-      </div>
+      </Card>
     </div>
   );
 }

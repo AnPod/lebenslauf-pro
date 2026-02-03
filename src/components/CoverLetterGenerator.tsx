@@ -2,13 +2,19 @@
 
 import { useState } from 'react';
 import { CVData } from '@/types/cv';
-import { FileText, Loader2, Copy, Check } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { FileText, Loader2, Copy, Check, Sparkles } from 'lucide-react';
 
 interface CoverLetterGeneratorProps {
   cvData: CVData;
 }
 
-export default function CoverLetterGenerator({ cvData }: CoverLetterGeneratorProps) {
+export function CoverLetterGenerator({ cvData }: CoverLetterGeneratorProps) {
   const [companyName, setCompanyName] = useState('');
   const [position, setPosition] = useState('');
   const [jobDescription, setJobDescription] = useState('');
@@ -58,100 +64,117 @@ export default function CoverLetterGenerator({ cvData }: CoverLetterGeneratorPro
   };
 
   return (
-    <div className="max-w-4xl mx-auto">
-      <div className="bg-white rounded-lg shadow p-6 mb-6">
-        <h2 className="text-xl font-bold text-primary mb-4 flex items-center gap-2">
-          <FileText className="w-5 h-5" />
-          KI-Anschreiben Generator
-        </h2>
-        
-        <div className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
+    <div className="max-w-3xl mx-auto space-y-6">
+      <Card>
+        <CardHeader>
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
+              <Sparkles className="h-5 w-5 text-primary" />
+            </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Unternehmen
-              </label>
-              <input
-                type="text"
+              <CardTitle>KI-Anschreiben Generator</CardTitle>
+              <p className="text-sm text-muted-foreground">
+                Generieren Sie ein maßgeschneidertes Anschreiben basierend auf Ihrem Lebenslauf
+              </p>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="company">Unternehmen</Label>
+              <Input
+                id="company"
                 value={companyName}
                 onChange={(e) => setCompanyName(e.target.value)}
                 placeholder="z.B. Siemens AG"
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent"
               />
             </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Position
-              </label>
-              <input
-                type="text"
+            <div className="space-y-2">
+              <Label htmlFor="position">Position</Label>
+              <Input
+                id="position"
                 value={position}
                 onChange={(e) => setPosition(e.target.value)}
                 placeholder="z.B. Softwareentwickler"
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent"
               />
             </div>
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Stellenbeschreibung
-            </label>
-            <textarea
+          <div className="space-y-2">
+            <Label htmlFor="jobDescription">Stellenbeschreibung</Label>
+            <Textarea
+              id="jobDescription"
               value={jobDescription}
               onChange={(e) => setJobDescription(e.target.value)}
               placeholder="Fügen Sie hier die Stellenbeschreibung ein..."
               rows={6}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent"
             />
           </div>
 
           {error && (
-            <div className="text-red-600 text-sm">{error}</div>
+            <p className="text-sm text-destructive">{error}</p>
           )}
 
-          <button
+          <Button
             onClick={generateCoverLetter}
             disabled={loading}
-            className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-primary text-white rounded-md hover:bg-secondary transition-colors disabled:opacity-50"
+            className="w-full"
+            size="lg"
           >
             {loading ? (
               <>
-                <Loader2 className="w-4 h-4 animate-spin" />
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                 Generiere Anschreiben...
               </>
             ) : (
-              'Anschreiben generieren'
+              <>
+                <Sparkles className="w-4 h-4 mr-2" />
+                Anschreiben generieren
+              </>
             )}
-          </button>
-        </div>
-      </div>
+          </Button>
+        </CardContent>
+      </Card>
 
       {coverLetter && (
-        <div className="bg-white rounded-lg shadow p-6">
-          <div className="flex justify-between items-center mb-4">
-            <h3 className="text-lg font-bold text-gray-900">Ihr Anschreiben</h3>
-            <button
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
+                <FileText className="h-5 w-5 text-primary" />
+              </div>
+              <div>
+                <CardTitle>Ihr Anschreiben</CardTitle>
+                <p className="text-sm text-muted-foreground">
+                  Basierend auf Ihrem Lebenslauf und der Stellenbeschreibung
+                </p>
+              </div>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
               onClick={copyToClipboard}
-              className="flex items-center gap-2 px-3 py-2 text-sm border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
             >
               {copied ? (
                 <>
-                  <Check className="w-4 h-4 text-green-600" />
+                  <Check className="w-4 h-4 mr-2 text-green-600" />
                   Kopiert!
                 </>
               ) : (
                 <>
-                  <Copy className="w-4 h-4" />
+                  <Copy className="w-4 h-4 mr-2" />
                   Kopieren
                 </>
               )}
-            </button>
-          </div>
-          <div className="whitespace-pre-wrap font-serif text-gray-800 leading-relaxed border border-gray-200 rounded-lg p-6 bg-gray-50">
-            {coverLetter}
-          </div>
-        </div>
+            </Button>
+          </CardHeader>
+          <CardContent>
+            <div className="whitespace-pre-wrap font-serif text-gray-800 leading-relaxed bg-muted/50 rounded-lg p-6 border">
+              {coverLetter}
+            </div>
+          </CardContent>
+        </Card>
       )}
     </div>
   );
