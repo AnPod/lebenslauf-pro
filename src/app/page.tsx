@@ -1,13 +1,13 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { CVData } from '@/types/cv';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { FileText, Sparkles, Save, Menu, X } from 'lucide-react';
+import { FileText, Sparkles, Save, Menu, X, Download, Upload } from 'lucide-react';
 import { CVForm } from '@/components/CVForm';
 import { CVPreview } from '@/components/CVPreview';
 import { CoverLetterGenerator } from '@/components/CoverLetterGenerator';
@@ -15,6 +15,8 @@ import { Sidebar, Section } from '@/components/Sidebar';
 import { ProgressIndicator } from '@/components/ProgressIndicator';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { calculateProgress } from '@/lib/progress';
+import { exportCVToJSON } from '@/lib/export';
+import { importCVFromJSON } from '@/lib/import';
 
 const defaultCVData: CVData = {
   personal: {
@@ -41,6 +43,8 @@ export default function Home() {
   const [isClient, setIsClient] = useState(false);
   const [mobilePreviewOpen, setMobilePreviewOpen] = useState(false);
   const [activeSection, setActiveSection] = useState<Section>('personal');
+  const [importMessage, setImportMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const progress = calculateProgress(cvData);
 
   useEffect(() => {
@@ -61,6 +65,41 @@ export default function Home() {
       setLastSaved(new Date());
     }
   }, [cvData, isClient]);
+
+  const handleExport = () => {
+    try {
+      exportCVToJSON(cvData);
+      setImportMessage({ type: 'success', text: 'CV erfolgreich exportiert!' });
+      setTimeout(() => setImportMessage(null), 3000);
+    } catch (error) {
+      setImportMessage({ type: 'error', text: 'Export fehlgeschlagen.' });
+      setTimeout(() => setImportMessage(null), 3000);
+    }
+  };
+
+  const handleImportClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleImport = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const result = await importCVFromJSON(file);
+
+    if (result.success && result.data) {
+      setCVData(result.data);
+      setImportMessage({ type: 'success', text: 'CV erfolgreich importiert!' });
+      setTimeout(() => setImportMessage(null), 3000);
+    } else {
+      setImportMessage({ type: 'error', text: result.error || 'Import fehlgeschlagen.' });
+      setTimeout(() => setImportMessage(null), 5000);
+    }
+
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
 
   if (!isClient) {
     return null;
@@ -87,7 +126,31 @@ export default function Home() {
                 </span>
               </Badge>
             )}
-            
+
+            <Button variant="outline" size="sm" onClick={handleExport} className="flex items-center gap-2">
+              <Download className="h-4 w-4" />
+              <span className="hidden sm:inline">Export</span>
+            </Button>
+
+            <Button variant="outline" size="sm" onClick={handleImportClick} className="flex items-center gap-2">
+              <Upload className="h-4 w-4" />
+              <span className="hidden sm:inline">Import</span>
+            </Button>
+
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept=".json"
+              onChange={handleImport}
+              className="hidden"
+            />
+
+            {importMessage && (
+              <Badge variant={importMessage.type === 'success' ? 'default' : 'destructive'} className="flex">
+                {importMessage.text}
+              </Badge>
+            )}
+
             {/* Mobile Preview Toggle */}
             <Sheet open={mobilePreviewOpen} onOpenChange={setMobilePreviewOpen}>
               <SheetTrigger asChild>
