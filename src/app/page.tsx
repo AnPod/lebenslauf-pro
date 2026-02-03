@@ -120,7 +120,7 @@ export default function Home() {
             {/* Left Panel - Form */}
             <div className="w-1/2 overflow-y-auto border-r border-gray-200 bg-white">
               <div className="p-6">
-                <CVForm data={cvData} onChange={setCvData} />
+                <CVForm data={cvData} onChange={setCVData} />
               </div>
             </div>
 
