@@ -4,6 +4,29 @@
 
 @layer base {
   html {
-    font-family: system-ui, sans-serif;
+    font-family: system-ui, -apple-system, sans-serif;
+  }
+}
+
+@layer utilities {
+  /* Print styles */
+  @media print {
+    @page {
+      size: A4;
+      margin: 0;
+    }
+    
+    body {
+      print-color-adjust: exact;
+      -webkit-print-color-adjust: exact;
+    }
+    
+    .print\:hidden {
+      display: none !important;
+    }
+    
+    .print\:shadow-none {
+      box-shadow: none !important;
+    }
   }
 }
