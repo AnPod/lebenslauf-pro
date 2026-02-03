@@ -1,6 +1,8 @@
 import { Template, TemplateId, TemplateRegistry, TemplateMetadata } from '@/types/template';
 import { ModernPreview, ModernPDF } from '@/components/templates/Modern';
 import { ClassicPreview, ClassicPDF } from '@/components/templates/Classic';
+import { ExecutivePreview, ExecutivePDF } from '@/components/templates/Executive';
+import { MinimalPreview, MinimalPDF } from '@/components/templates/Minimal';
 import { PlaceholderPreview, PlaceholderPDF } from '@/components/templates/Placeholder';
 
 /**
@@ -35,8 +37,8 @@ export const templateRegistry: TemplateRegistry = {
     id: 'minimal',
     name: 'Minimal',
     description: 'Ultra-clean design with generous whitespace',
-    preview: PlaceholderPreview,
-    pdfComponent: PlaceholderPDF,
+    preview: MinimalPreview,
+    pdfComponent: MinimalPDF,
     thumbnail: '/templates/minimal-thumb.png',
   },
 
@@ -44,8 +46,8 @@ export const templateRegistry: TemplateRegistry = {
     id: 'executive',
     name: 'Executive',
     description: 'Bold and authoritative design for senior professionals',
-    preview: PlaceholderPreview,
-    pdfComponent: PlaceholderPDF,
+    preview: ExecutivePreview,
+    pdfComponent: ExecutivePDF,
     thumbnail: '/templates/executive-thumb.png',
   },
 };
