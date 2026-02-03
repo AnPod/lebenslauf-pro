@@ -4,13 +4,16 @@ import { useState } from 'react';
 import { User, FileText, Briefcase, GraduationCap, Wrench, Menu, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { ProgressIndicator } from '@/components/ProgressIndicator';
 import { cn } from '@/lib/utils';
+import type { ProgressResult } from '@/lib/progress';
 
 export type Section = 'personal' | 'profile' | 'experience' | 'education' | 'skills';
 
 interface SidebarProps {
   activeSection: Section;
   onSectionChange: (section: Section) => void;
+  progress?: ProgressResult;
 }
 
 const navigationItems = [
@@ -46,7 +49,7 @@ const navigationItems = [
   },
 ];
 
-export function Sidebar({ activeSection, onSectionChange }: SidebarProps) {
+export function Sidebar({ activeSection, onSectionChange, progress }: SidebarProps) {
   const [mobileOpen, setMobileOpen] = useState(false);
 
   const handleSectionClick = (section: Section) => {
@@ -109,6 +112,14 @@ export function Sidebar({ activeSection, onSectionChange }: SidebarProps) {
     <>
       <aside className="hidden lg:block w-64 flex-shrink-0">
         <div className="sticky top-20 space-y-4">
+          {progress && (
+            <div className="px-4">
+              <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">
+                Fortschritt
+              </h2>
+              <ProgressIndicator progress={progress} />
+            </div>
+          )}
           <div className="px-4">
             <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
               Sektionen
@@ -142,8 +153,21 @@ export function Sidebar({ activeSection, onSectionChange }: SidebarProps) {
                 <X className="h-4 w-4" />
               </Button>
             </div>
-            <div className="flex-1 overflow-y-auto p-4">
-              <NavItems />
+            <div className="flex-1 overflow-y-auto p-4 space-y-4">
+              {progress && (
+                <div>
+                  <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">
+                    Fortschritt
+                  </h2>
+                  <ProgressIndicator progress={progress} />
+                </div>
+              )}
+              <div>
+                <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">
+                  Sektionen
+                </h2>
+                <NavItems />
+              </div>
             </div>
           </div>
         </SheetContent>

@@ -12,7 +12,9 @@ import { CVForm } from '@/components/CVForm';
 import { CVPreview } from '@/components/CVPreview';
 import { CoverLetterGenerator } from '@/components/CoverLetterGenerator';
 import { Sidebar, Section } from '@/components/Sidebar';
+import { ProgressIndicator } from '@/components/ProgressIndicator';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { calculateProgress } from '@/lib/progress';
 
 const defaultCVData: CVData = {
   personal: {
@@ -39,6 +41,7 @@ export default function Home() {
   const [isClient, setIsClient] = useState(false);
   const [mobilePreviewOpen, setMobilePreviewOpen] = useState(false);
   const [activeSection, setActiveSection] = useState<Section>('personal');
+  const progress = calculateProgress(cvData);
 
   useEffect(() => {
     setIsClient(true);
@@ -123,7 +126,7 @@ export default function Home() {
 
           <TabsContent value="editor" className="space-y-4">
             <div className="grid grid-cols-1 lg:grid-cols-[auto_1fr_1fr] gap-4 lg:gap-6">
-              <Sidebar activeSection={activeSection} onSectionChange={setActiveSection} />
+              <Sidebar activeSection={activeSection} onSectionChange={setActiveSection} progress={progress} />
 
               <Card className="p-4 sm:p-6">
                 <CVForm data={cvData} onChange={setCVData} />
