@@ -11,6 +11,7 @@ import { FileText, Sparkles, Save, Menu, X } from 'lucide-react';
 import { CVForm } from '@/components/CVForm';
 import { CVPreview } from '@/components/CVPreview';
 import { CoverLetterGenerator } from '@/components/CoverLetterGenerator';
+import { Sidebar, Section } from '@/components/Sidebar';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 
 const defaultCVData: CVData = {
@@ -37,6 +38,7 @@ export default function Home() {
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const [isClient, setIsClient] = useState(false);
   const [mobilePreviewOpen, setMobilePreviewOpen] = useState(false);
+  const [activeSection, setActiveSection] = useState<Section>('personal');
 
   useEffect(() => {
     setIsClient(true);
@@ -120,13 +122,13 @@ export default function Home() {
           </TabsList>
 
           <TabsContent value="editor" className="space-y-4">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6">
-              {/* Form Section */}
+            <div className="grid grid-cols-1 lg:grid-cols-[auto_1fr_1fr] gap-4 lg:gap-6">
+              <Sidebar activeSection={activeSection} onSectionChange={setActiveSection} />
+
               <Card className="p-4 sm:p-6">
                 <CVForm data={cvData} onChange={setCVData} />
               </Card>
 
-              {/* Preview Section - Hidden on mobile, visible on lg */}
               <div className="hidden lg:block">
                 <Card className="p-4 sticky top-20">
                   <ScrollArea className="h-[calc(100vh-180px)]">
