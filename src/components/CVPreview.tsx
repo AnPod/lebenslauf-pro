@@ -1,32 +1,46 @@
 'use client';
 
+import { useState } from 'react';
 import { CVData } from '@/types/cv';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { Download } from 'lucide-react';
+import { Download, Loader2 } from 'lucide-react';
+import { downloadPDF } from '@/lib/pdf';
 
 interface CVPreviewProps {
   data: CVData;
 }
 
 export function CVPreview({ data }: CVPreviewProps) {
+  const [isGenerating, setIsGenerating] = useState(false);
+
   const formatDate = (dateString: string) => {
     if (!dateString) return '';
     const date = new Date(dateString);
     return date.toLocaleDateString('de-DE', { month: 'long', year: 'numeric' });
   };
 
-  const handlePrint = () => {
-    window.print();
+  const handleDownloadPDF = async () => {
+    setIsGenerating(true);
+    try {
+      await downloadPDF(data);
+    } catch (error) {
+      console.error('PDF generation failed:', error);
+    } finally {
+      setIsGenerating(false);
+    }
   };
 
   return (
     <div className="space-y-4">
-      {/* Print Button */}
       <div className="flex justify-end print:hidden">
-        <Button onClick={handlePrint} size="sm">
-          <Download className="w-4 h-4 mr-2" />
-          PDF Drucken
+        <Button onClick={handleDownloadPDF} size="sm" disabled={isGenerating}>
+          {isGenerating ? (
+            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+          ) : (
+            <Download className="w-4 h-4 mr-2" />
+          )}
+          {isGenerating ? 'PDF wird erstellt...' : 'PDF herunterladen'}
         </Button>
       </div>
 
