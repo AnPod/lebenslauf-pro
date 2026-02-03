@@ -1,6 +1,21 @@
 'use client';
 
 import { useRef, useState } from 'react';
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from '@dnd-kit/core';
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
 import { CVData, PersonalInfo, Experience, Education, Skill } from '@/types/cv';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -11,6 +26,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { FormError } from '@/components/FormError';
+import { SortableItem } from '@/components/SortableItem';
 import {
   User, Briefcase, GraduationCap, Wrench, FileText,
   Plus, Trash2, Upload, MapPin, Mail, Phone, Calendar, Globe, CheckCircle2
@@ -25,6 +41,89 @@ interface CVFormProps {
 export function CVForm({ data, onChange }: CVFormProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8,
+      },
+    }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
+
+  const handleExperienceDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+
+    if (over && active.id !== over.id) {
+      const oldIndex = data.experience.findIndex((exp) => exp.id === active.id);
+      const newIndex = data.experience.findIndex((exp) => exp.id === over.id);
+
+      onChange({
+        ...data,
+        experience: arrayMove(data.experience, oldIndex, newIndex),
+      });
+    }
+  };
+
+  const handleEducationDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+
+    if (over && active.id !== over.id) {
+      const oldIndex = data.education.findIndex((edu) => edu.id === active.id);
+      const newIndex = data.education.findIndex((edu) => edu.id === over.id);
+
+      onChange({
+        ...data,
+        education: arrayMove(data.education, oldIndex, newIndex),
+      });
+    }
+  };
+
+  const handleSkillsDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+
+    if (over && active.id !== over.id) {
+      const oldIndex = data.skills.findIndex((skill) => skill.id === active.id);
+      const newIndex = data.skills.findIndex((skill) => skill.id === over.id);
+
+      onChange({
+        ...data,
+        skills: arrayMove(data.skills, oldIndex, newIndex),
+      });
+    }
+  };
+
+  const moveExperience = (index: number, direction: 'up' | 'down') => {
+    const newIndex = direction === 'up' ? index - 1 : index + 1;
+    if (newIndex < 0 || newIndex >= data.experience.length) return;
+
+    onChange({
+      ...data,
+      experience: arrayMove(data.experience, index, newIndex),
+    });
+  };
+
+  const moveEducation = (index: number, direction: 'up' | 'down') => {
+    const newIndex = direction === 'up' ? index - 1 : index + 1;
+    if (newIndex < 0 || newIndex >= data.education.length) return;
+
+    onChange({
+      ...data,
+      education: arrayMove(data.education, index, newIndex),
+    });
+  };
+
+  const moveSkill = (index: number, direction: 'up' | 'down') => {
+    const newIndex = direction === 'up' ? index - 1 : index + 1;
+    if (newIndex < 0 || newIndex >= data.skills.length) return;
+
+    onChange({
+      ...data,
+      skills: arrayMove(data.skills, index, newIndex),
+    });
+  };
 
   const clearError = (field: string) => {
     setErrors((prev) => {
@@ -418,114 +517,134 @@ export function CVForm({ data, onChange }: CVFormProps) {
           )}
         </div>
 
-        <div className="space-y-4">
-          {data.experience.length === 0 && (
-            <p className="text-sm text-muted-foreground text-center py-4">
-              Noch keine Einträge. Fügen Sie Ihre erste Position hinzu.
-            </p>
-          )}
-          {data.experience.map((exp, index) => (
-            <Card key={exp.id} className="relative">
-              <CardHeader className="pb-3">
-                <div className="flex items-start justify-between">
-                  <Badge variant="secondary">Position {index + 1}</Badge>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => removeExperience(exp.id)}
-                    className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-4 pt-0">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label>Unternehmen</Label>
-                    <Input
-                      value={exp.company}
-                      onChange={(e) => updateExperience(exp.id, 'company', e.target.value)}
-                      onBlur={() => handleExperienceBlur(exp.id, 'company')}
-                      placeholder="Unternehmen"
-                    />
-                    <FormError message={errors[`${exp.id}.company`]} />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Position</Label>
-                    <Input
-                      value={exp.position}
-                      onChange={(e) => updateExperience(exp.id, 'position', e.target.value)}
-                      onBlur={() => handleExperienceBlur(exp.id, 'position')}
-                      placeholder="Position"
-                    />
-                    <FormError message={errors[`${exp.id}.position`]} />
-                  </div>
-                </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label>Ort</Label>
-                    <Input
-                      value={exp.location}
-                      onChange={(e) => updateExperience(exp.id, 'location', e.target.value)}
-                      placeholder="Ort"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Zeitraum</Label>
-                    <div className="flex items-center gap-2">
-                      <Input
-                        type="month"
-                        value={exp.startDate}
-                        onChange={(e) => updateExperience(exp.id, 'startDate', e.target.value)}
-                        onBlur={() => handleExperienceBlur(exp.id, 'startDate')}
-                        className="flex-1"
-                      />
-                      <span className="text-muted-foreground">bis</span>
-                      {!exp.current ? (
-                        <Input
-                          type="month"
-                          value={exp.endDate}
-                          onChange={(e) => updateExperience(exp.id, 'endDate', e.target.value)}
-                          className="flex-1"
-                        />
-                      ) : (
-                        <span className="text-sm text-muted-foreground px-2">heute</span>
-                      )}
-                    </div>
-                    <FormError message={errors[`${exp.id}.startDate`]} />
-                    <FormError message={errors[`${exp.id}.endDate`]} />
-                  </div>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <Switch
-                    id={`current-${exp.id}`}
-                    checked={exp.current}
-                    onCheckedChange={(checked) => updateExperience(exp.id, 'current', checked)}
-                  />
-                  <Label htmlFor={`current-${exp.id}`} className="text-sm">Aktuelle Position</Label>
-                </div>
-                <div className="space-y-2">
-                  <Label>Beschreibung</Label>
-                  <Textarea
-                    value={exp.description}
-                    onChange={(e) => updateExperience(exp.id, 'description', e.target.value)}
-                    placeholder="Aufgaben und Verantwortlichkeiten..."
-                    rows={3}
-                  />
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-          <Button
-            variant="outline"
-            onClick={addExperience}
-            className="w-full"
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCenter}
+          onDragEnd={handleExperienceDragEnd}
+        >
+          <SortableContext
+            items={data.experience.map((exp) => exp.id)}
+            strategy={verticalListSortingStrategy}
           >
-            <Plus className="w-4 h-4 mr-2" />
-            Position hinzufügen
-          </Button>
-        </div>
+            <div className="space-y-4">
+              {data.experience.length === 0 && (
+                <p className="text-sm text-muted-foreground text-center py-4">
+                  Noch keine Einträge. Fügen Sie Ihre erste Position hinzu.
+                </p>
+              )}
+              {data.experience.map((exp, index) => (
+                <SortableItem
+                  key={exp.id}
+                  id={exp.id}
+                  index={index}
+                  total={data.experience.length}
+                  onMoveUp={() => moveExperience(index, 'up')}
+                  onMoveDown={() => moveExperience(index, 'down')}
+                >
+                  <Card className="relative">
+                    <CardHeader className="pb-3">
+                      <div className="flex items-start justify-between">
+                        <Badge variant="secondary">Position {index + 1}</Badge>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => removeExperience(exp.id)}
+                          className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </CardHeader>
+                    <CardContent className="space-y-4 pt-0">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label>Unternehmen</Label>
+                          <Input
+                            value={exp.company}
+                            onChange={(e) => updateExperience(exp.id, 'company', e.target.value)}
+                            onBlur={() => handleExperienceBlur(exp.id, 'company')}
+                            placeholder="Unternehmen"
+                          />
+                          <FormError message={errors[`${exp.id}.company`]} />
+                        </div>
+                        <div className="space-y-2">
+                          <Label>Position</Label>
+                          <Input
+                            value={exp.position}
+                            onChange={(e) => updateExperience(exp.id, 'position', e.target.value)}
+                            onBlur={() => handleExperienceBlur(exp.id, 'position')}
+                            placeholder="Position"
+                          />
+                          <FormError message={errors[`${exp.id}.position`]} />
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label>Ort</Label>
+                          <Input
+                            value={exp.location}
+                            onChange={(e) => updateExperience(exp.id, 'location', e.target.value)}
+                            placeholder="Ort"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label>Zeitraum</Label>
+                          <div className="flex items-center gap-2">
+                            <Input
+                              type="month"
+                              value={exp.startDate}
+                              onChange={(e) => updateExperience(exp.id, 'startDate', e.target.value)}
+                              onBlur={() => handleExperienceBlur(exp.id, 'startDate')}
+                              className="flex-1"
+                            />
+                            <span className="text-muted-foreground">bis</span>
+                            {!exp.current ? (
+                              <Input
+                                type="month"
+                                value={exp.endDate}
+                                onChange={(e) => updateExperience(exp.id, 'endDate', e.target.value)}
+                                className="flex-1"
+                              />
+                            ) : (
+                              <span className="text-sm text-muted-foreground px-2">heute</span>
+                            )}
+                          </div>
+                          <FormError message={errors[`${exp.id}.startDate`]} />
+                          <FormError message={errors[`${exp.id}.endDate`]} />
+                        </div>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Switch
+                          id={`current-${exp.id}`}
+                          checked={exp.current}
+                          onCheckedChange={(checked) => updateExperience(exp.id, 'current', checked)}
+                        />
+                        <Label htmlFor={`current-${exp.id}`} className="text-sm">Aktuelle Position</Label>
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Beschreibung</Label>
+                        <Textarea
+                          value={exp.description}
+                          onChange={(e) => updateExperience(exp.id, 'description', e.target.value)}
+                          placeholder="Aufgaben und Verantwortlichkeiten..."
+                          rows={3}
+                        />
+                      </div>
+                    </CardContent>
+                  </Card>
+                </SortableItem>
+              ))}
+              <Button
+                variant="outline"
+                onClick={addExperience}
+                className="w-full"
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                Position hinzufügen
+              </Button>
+            </div>
+          </SortableContext>
+        </DndContext>
       </section>
 
       <section id="section-education" className="border rounded-lg px-4 py-4">
@@ -544,113 +663,133 @@ export function CVForm({ data, onChange }: CVFormProps) {
           )}
         </div>
 
-        <div className="space-y-4">
-          {data.education.length === 0 && (
-            <p className="text-sm text-muted-foreground text-center py-4">
-              Noch keine Einträge. Fügen Sie Ihre erste Ausbildung hinzu.
-            </p>
-          )}
-          {data.education.map((edu, index) => (
-            <Card key={edu.id} className="relative">
-              <CardHeader className="pb-3">
-                <div className="flex items-start justify-between">
-                  <Badge variant="secondary">Ausbildung {index + 1}</Badge>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => removeEducation(edu.id)}
-                    className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-4 pt-0">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label>Institution</Label>
-                    <Input
-                      value={edu.institution}
-                      onChange={(e) => updateEducation(edu.id, 'institution', e.target.value)}
-                      onBlur={() => handleEducationBlur(edu.id, 'institution')}
-                      placeholder="Universität / Schule"
-                    />
-                    <FormError message={errors[`${edu.id}.institution`]} />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Abschluss</Label>
-                    <Input
-                      value={edu.degree}
-                      onChange={(e) => updateEducation(edu.id, 'degree', e.target.value)}
-                      onBlur={() => handleEducationBlur(edu.id, 'degree')}
-                      placeholder="Bachelor, Master, etc."
-                    />
-                    <FormError message={errors[`${edu.id}.degree`]} />
-                  </div>
-                </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label>Studienfach</Label>
-                    <Input
-                      value={edu.field}
-                      onChange={(e) => updateEducation(edu.id, 'field', e.target.value)}
-                      placeholder="Fachrichtung"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Ort</Label>
-                    <Input
-                      value={edu.location}
-                      onChange={(e) => updateEducation(edu.id, 'location', e.target.value)}
-                      placeholder="Ort"
-                    />
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <Label>Zeitraum</Label>
-                  <div className="flex items-center gap-2">
-                    <Input
-                      type="month"
-                      value={edu.startDate}
-                      onChange={(e) => updateEducation(edu.id, 'startDate', e.target.value)}
-                      onBlur={() => handleEducationBlur(edu.id, 'startDate')}
-                      className="flex-1"
-                    />
-                    <span className="text-muted-foreground">bis</span>
-                    {!edu.current ? (
-                      <Input
-                        type="month"
-                        value={edu.endDate}
-                        onChange={(e) => updateEducation(edu.id, 'endDate', e.target.value)}
-                        className="flex-1"
-                      />
-                    ) : (
-                      <span className="text-sm text-muted-foreground px-2">heute</span>
-                    )}
-                  </div>
-                  <FormError message={errors[`${edu.id}.startDate`]} />
-                  <FormError message={errors[`${edu.id}.endDate`]} />
-                </div>
-                <div className="flex items-center space-x-2">
-                  <Switch
-                    id={`edu-current-${edu.id}`}
-                    checked={edu.current}
-                    onCheckedChange={(checked) => updateEducation(edu.id, 'current', checked)}
-                  />
-                  <Label htmlFor={`edu-current-${edu.id}`} className="text-sm">Aktuell</Label>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-          <Button
-            variant="outline"
-            onClick={addEducation}
-            className="w-full"
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCenter}
+          onDragEnd={handleEducationDragEnd}
+        >
+          <SortableContext
+            items={data.education.map((edu) => edu.id)}
+            strategy={verticalListSortingStrategy}
           >
-            <Plus className="w-4 h-4 mr-2" />
-            Ausbildung hinzufügen
-          </Button>
-        </div>
+            <div className="space-y-4">
+              {data.education.length === 0 && (
+                <p className="text-sm text-muted-foreground text-center py-4">
+                  Noch keine Einträge. Fügen Sie Ihre erste Ausbildung hinzu.
+                </p>
+              )}
+              {data.education.map((edu, index) => (
+                <SortableItem
+                  key={edu.id}
+                  id={edu.id}
+                  index={index}
+                  total={data.education.length}
+                  onMoveUp={() => moveEducation(index, 'up')}
+                  onMoveDown={() => moveEducation(index, 'down')}
+                >
+                  <Card className="relative">
+                    <CardHeader className="pb-3">
+                      <div className="flex items-start justify-between">
+                        <Badge variant="secondary">Ausbildung {index + 1}</Badge>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => removeEducation(edu.id)}
+                          className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </CardHeader>
+                    <CardContent className="space-y-4 pt-0">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label>Institution</Label>
+                          <Input
+                            value={edu.institution}
+                            onChange={(e) => updateEducation(edu.id, 'institution', e.target.value)}
+                            onBlur={() => handleEducationBlur(edu.id, 'institution')}
+                            placeholder="Universität / Schule"
+                          />
+                          <FormError message={errors[`${edu.id}.institution`]} />
+                        </div>
+                        <div className="space-y-2">
+                          <Label>Abschluss</Label>
+                          <Input
+                            value={edu.degree}
+                            onChange={(e) => updateEducation(edu.id, 'degree', e.target.value)}
+                            onBlur={() => handleEducationBlur(edu.id, 'degree')}
+                            placeholder="Bachelor, Master, etc."
+                          />
+                          <FormError message={errors[`${edu.id}.degree`]} />
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label>Studienfach</Label>
+                          <Input
+                            value={edu.field}
+                            onChange={(e) => updateEducation(edu.id, 'field', e.target.value)}
+                            placeholder="Fachrichtung"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label>Ort</Label>
+                          <Input
+                            value={edu.location}
+                            onChange={(e) => updateEducation(edu.id, 'location', e.target.value)}
+                            placeholder="Ort"
+                          />
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Zeitraum</Label>
+                        <div className="flex items-center gap-2">
+                          <Input
+                            type="month"
+                            value={edu.startDate}
+                            onChange={(e) => updateEducation(edu.id, 'startDate', e.target.value)}
+                            onBlur={() => handleEducationBlur(edu.id, 'startDate')}
+                            className="flex-1"
+                          />
+                          <span className="text-muted-foreground">bis</span>
+                          {!edu.current ? (
+                            <Input
+                              type="month"
+                              value={edu.endDate}
+                              onChange={(e) => updateEducation(edu.id, 'endDate', e.target.value)}
+                              className="flex-1"
+                            />
+                          ) : (
+                            <span className="text-sm text-muted-foreground px-2">heute</span>
+                          )}
+                        </div>
+                        <FormError message={errors[`${edu.id}.startDate`]} />
+                        <FormError message={errors[`${edu.id}.endDate`]} />
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Switch
+                          id={`edu-current-${edu.id}`}
+                          checked={edu.current}
+                          onCheckedChange={(checked) => updateEducation(edu.id, 'current', checked)}
+                        />
+                        <Label htmlFor={`edu-current-${edu.id}`} className="text-sm">Aktuell</Label>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </SortableItem>
+              ))}
+              <Button
+                variant="outline"
+                onClick={addEducation}
+                className="w-full"
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                Ausbildung hinzufügen
+              </Button>
+            </div>
+          </SortableContext>
+        </DndContext>
       </section>
 
       <section id="section-skills" className="border rounded-lg px-4 py-4">
@@ -669,77 +808,97 @@ export function CVForm({ data, onChange }: CVFormProps) {
           )}
         </div>
 
-        <div className="space-y-3">
-          {data.skills.length === 0 && (
-            <p className="text-sm text-muted-foreground text-center py-4">
-              Noch keine Fähigkeiten. Fügen Sie Ihre ersten Fähigkeiten hinzu.
-            </p>
-          )}
-          {data.skills.map((skill) => (
-            <Card key={skill.id} className="p-4">
-              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
-                <Input
-                  placeholder="Fähigkeit (z.B. Deutsch, Python)"
-                  value={skill.name}
-                  onChange={(e) => updateSkill(skill.id, 'name', e.target.value)}
-                  onBlur={() => handleSkillBlur(skill.id, 'name')}
-                  className="flex-1"
-                />
-                <FormError message={errors[`${skill.id}.name`]} />
-                <div className="flex items-center gap-2 w-full sm:w-auto">
-                  <select
-                    value={skill.level}
-                    onChange={(e) => updateSkill(skill.id, 'level', e.target.value)}
-                    className="flex-1 sm:w-32 h-9 rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm"
-                  >
-                    {skill.category === 'language' ? (
-                      <>
-                        <option value="A1">A1</option>
-                        <option value="A2">A2</option>
-                        <option value="B1">B1</option>
-                        <option value="B2">B2</option>
-                        <option value="C1">C1</option>
-                        <option value="C2">C2</option>
-                      </>
-                    ) : (
-                      <>
-                        <option value="Grundkenntnisse">Grundkenntnisse</option>
-                        <option value="Gut">Gut</option>
-                        <option value="Sehr gut">Sehr gut</option>
-                        <option value="Fließend">Fließend</option>
-                      </>
-                    )}
-                  </select>
-                  <select
-                    value={skill.category}
-                    onChange={(e) => updateSkill(skill.id, 'category', e.target.value)}
-                    className="w-28 h-9 rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm"
-                  >
-                    <option value="technical">Technisch</option>
-                    <option value="language">Sprache</option>
-                    <option value="soft">Soft Skills</option>
-                  </select>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => removeSkill(skill.id)}
-                    className="h-9 w-9 text-destructive hover:text-destructive hover:bg-destructive/10"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
-            </Card>
-          ))}
-          <Button
-            variant="outline"
-            onClick={addSkill}
-            className="w-full"
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCenter}
+          onDragEnd={handleSkillsDragEnd}
+        >
+          <SortableContext
+            items={data.skills.map((skill) => skill.id)}
+            strategy={verticalListSortingStrategy}
           >
-            <Plus className="w-4 h-4 mr-2" />
-            Fähigkeit hinzufügen
-          </Button>
-        </div>
+            <div className="space-y-3">
+              {data.skills.length === 0 && (
+                <p className="text-sm text-muted-foreground text-center py-4">
+                  Noch keine Fähigkeiten. Fügen Sie Ihre ersten Fähigkeiten hinzu.
+                </p>
+              )}
+              {data.skills.map((skill, index) => (
+                <SortableItem
+                  key={skill.id}
+                  id={skill.id}
+                  index={index}
+                  total={data.skills.length}
+                  onMoveUp={() => moveSkill(index, 'up')}
+                  onMoveDown={() => moveSkill(index, 'down')}
+                >
+                  <Card className="p-4">
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+                      <Input
+                        placeholder="Fähigkeit (z.B. Deutsch, Python)"
+                        value={skill.name}
+                        onChange={(e) => updateSkill(skill.id, 'name', e.target.value)}
+                        onBlur={() => handleSkillBlur(skill.id, 'name')}
+                        className="flex-1"
+                      />
+                      <FormError message={errors[`${skill.id}.name`]} />
+                      <div className="flex items-center gap-2 w-full sm:w-auto">
+                        <select
+                          value={skill.level}
+                          onChange={(e) => updateSkill(skill.id, 'level', e.target.value)}
+                          className="flex-1 sm:w-32 h-9 rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm"
+                        >
+                          {skill.category === 'language' ? (
+                            <>
+                              <option value="A1">A1</option>
+                              <option value="A2">A2</option>
+                              <option value="B1">B1</option>
+                              <option value="B2">B2</option>
+                              <option value="C1">C1</option>
+                              <option value="C2">C2</option>
+                            </>
+                          ) : (
+                            <>
+                              <option value="Grundkenntnisse">Grundkenntnisse</option>
+                              <option value="Gut">Gut</option>
+                              <option value="Sehr gut">Sehr gut</option>
+                              <option value="Fließend">Fließend</option>
+                            </>
+                          )}
+                        </select>
+                        <select
+                          value={skill.category}
+                          onChange={(e) => updateSkill(skill.id, 'category', e.target.value)}
+                          className="w-28 h-9 rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm"
+                        >
+                          <option value="technical">Technisch</option>
+                          <option value="language">Sprache</option>
+                          <option value="soft">Soft Skills</option>
+                        </select>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => removeSkill(skill.id)}
+                          className="h-9 w-9 text-destructive hover:text-destructive hover:bg-destructive/10"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  </Card>
+                </SortableItem>
+              ))}
+              <Button
+                variant="outline"
+                onClick={addSkill}
+                className="w-full"
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                Fähigkeit hinzufügen
+              </Button>
+            </div>
+          </SortableContext>
+        </DndContext>
       </section>
     </div>
   );
