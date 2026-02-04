@@ -8,6 +8,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Checkbox } from '@/components/ui/checkbox';
 import { FileText, Loader2, Copy, Check, Sparkles } from 'lucide-react';
 
 interface CoverLetterGeneratorProps {
@@ -18,14 +20,21 @@ export function CoverLetterGenerator({ cvData }: CoverLetterGeneratorProps) {
   const [companyName, setCompanyName] = useState('');
   const [position, setPosition] = useState('');
   const [jobDescription, setJobDescription] = useState('');
+  const [tone, setTone] = useState<'Professional' | 'Formal' | 'Enthusiastic' | 'Concise'>('Professional');
   const [coverLetter, setCoverLetter] = useState('');
   const [loading, setLoading] = useState(false);
   const [copied, setCopied] = useState(false);
   const [error, setError] = useState('');
+  const [consent, setConsent] = useState(false);
 
   const generateCoverLetter = async () => {
     if (!companyName || !position || !jobDescription) {
       setError('Bitte füllen Sie alle Felder aus');
+      return;
+    }
+
+    if (!consent) {
+      setError('Bitte stimmen Sie der Datenverarbeitung zu');
       return;
     }
 
@@ -40,6 +49,7 @@ export function CoverLetterGenerator({ cvData }: CoverLetterGeneratorProps) {
           companyName,
           position,
           jobDescription,
+          tone,
           cvData,
         }),
       });
@@ -102,6 +112,21 @@ export function CoverLetterGenerator({ cvData }: CoverLetterGeneratorProps) {
           </div>
 
           <div className="space-y-2">
+            <Label htmlFor="tone">Ton</Label>
+            <Select value={tone} onValueChange={(value: 'Professional' | 'Formal' | 'Enthusiastic' | 'Concise') => setTone(value)}>
+              <SelectTrigger id="tone">
+                <SelectValue placeholder="Wählen Sie einen Ton" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="Professional">Professionell</SelectItem>
+                <SelectItem value="Formal">Formell</SelectItem>
+                <SelectItem value="Enthusiastic">Begeistert</SelectItem>
+                <SelectItem value="Concise">Prägnant</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-2">
             <Label htmlFor="jobDescription">Stellenbeschreibung</Label>
             <Textarea
               id="jobDescription"
@@ -116,9 +141,28 @@ export function CoverLetterGenerator({ cvData }: CoverLetterGeneratorProps) {
             <p className="text-sm text-destructive">{error}</p>
           )}
 
+          <div className="flex items-start space-x-2 rounded-lg border p-3 bg-muted/50">
+            <Checkbox
+              id="consent"
+              checked={consent}
+              onCheckedChange={(checked) => setConsent(checked === true)}
+            />
+            <div className="grid gap-1.5 leading-none">
+              <label
+                htmlFor="consent"
+                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+              >
+                Ich stimme zu, dass meine Daten zur Generierung des Anschreibens verarbeitet werden
+              </label>
+              <p className="text-xs text-muted-foreground">
+                Ihre persönlichen Daten werden nur zur Generierung des Anschreibens verwendet und nicht gespeichert.
+              </p>
+            </div>
+          </div>
+
           <Button
             onClick={generateCoverLetter}
-            disabled={loading}
+            disabled={loading || !consent}
             className="w-full"
             size="lg"
           >
