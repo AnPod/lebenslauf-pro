@@ -46,21 +46,23 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
-      <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <div className="min-h-screen gradient-mesh bg-background">
+      <header className="sticky top-0 z-50 w-full border-b glass">
         <div className="container flex h-14 items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary glow-primary">
               <FileText className="h-4 w-4 text-primary-foreground" />
             </div>
-            <span className="font-semibold hidden sm:inline">Lebenslauf Pro</span>
+            <span className="font-semibold hidden sm:inline bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+              Lebenslauf Pro
+            </span>
           </div>
         </div>
       </header>
 
       <main className="container py-8 sm:py-12">
-        <div className="mb-8 sm:mb-12">
-          <h1 className="text-3xl sm:text-4xl font-bold tracking-tight mb-2">
+        <div className="mb-8 sm:mb-12 animate-in">
+          <h1 className="text-3xl sm:text-4xl font-bold tracking-tight mb-2 gradient-text">
             Willkommen zurück!
           </h1>
           <p className="text-muted-foreground text-lg">
@@ -69,56 +71,56 @@ export default function DashboardPage() {
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-8 sm:mb-12">
-          <Card className="group hover:shadow-lg transition-all duration-300 border-2 hover:border-primary/50">
+          <Card className="group glass-card hover-lift border-2 hover:border-primary/50 transition-all duration-300">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground">
                 Lebensläufe
               </CardTitle>
-              <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
+              <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors group-hover:glow-primary">
                 <FileText className="h-5 w-5 text-primary" />
               </div>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold text-primary">{stats.cvsCreated}</div>
+              <div className="text-3xl font-bold gradient-text">{stats.cvsCreated}</div>
               <p className="text-xs text-muted-foreground mt-1">
                 {stats.cvsCreated === 0 ? 'Noch kein Lebenslauf' : 'Erstellt'}
               </p>
             </CardContent>
           </Card>
 
-          <Card className="group hover:shadow-lg transition-all duration-300 border-2 hover:border-secondary/50">
+          <Card className="group glass-card hover-lift border-2 hover:border-secondary/50 transition-all duration-300">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground">
                 Anschreiben
               </CardTitle>
-              <div className="h-10 w-10 rounded-lg bg-secondary/10 flex items-center justify-center group-hover:bg-secondary/20 transition-colors">
+              <div className="h-10 w-10 rounded-lg bg-secondary/10 flex items-center justify-center group-hover:bg-secondary/20 transition-colors group-hover:glow-purple">
                 <Sparkles className="h-5 w-5 text-secondary" />
               </div>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold text-secondary">{stats.coverLetters}</div>
+              <div className="text-3xl font-bold bg-gradient-to-r from-secondary to-primary bg-clip-text text-transparent">{stats.coverLetters}</div>
               <p className="text-xs text-muted-foreground mt-1">
                 {stats.coverLetters === 0 ? 'Noch keines erstellt' : 'KI-generiert'}
               </p>
             </CardContent>
           </Card>
 
-          <Card className="group hover:shadow-lg transition-all duration-300 border-2 hover:border-success/50 sm:col-span-2 lg:col-span-1">
+          <Card className="group glass-card hover-lift border-2 hover:border-success/50 sm:col-span-2 lg:col-span-1 transition-all duration-300">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground">
                 Profil-Vervollständigung
               </CardTitle>
-              <div className="h-10 w-10 rounded-lg bg-success/10 flex items-center justify-center group-hover:bg-success/20 transition-colors">
+              <div className="h-10 w-10 rounded-lg bg-success/10 flex items-center justify-center group-hover:bg-success/20 transition-colors group-hover:glow-success">
                 <TrendingUp className="h-5 w-5 text-success" />
               </div>
             </CardHeader>
             <CardContent>
               <div className="flex items-baseline gap-2">
-                <div className="text-3xl font-bold text-success">{stats.profileCompletion}%</div>
+                <div className="text-3xl font-bold bg-gradient-to-r from-success to-primary bg-clip-text text-transparent">{stats.profileCompletion}%</div>
               </div>
-              <div className="w-full bg-muted rounded-full h-2 mt-3 overflow-hidden">
+              <div className="w-full bg-muted/50 rounded-full h-2 mt-3 overflow-hidden glass">
                 <div
-                  className="bg-success h-full rounded-full transition-all duration-500 ease-out"
+                  className="bg-gradient-to-r from-success to-primary h-full rounded-full transition-all duration-500 ease-out"
                   style={{ width: `${stats.profileCompletion}%` }}
                 />
               </div>
@@ -182,17 +184,17 @@ export default function DashboardPage() {
         </div>
 
         {stats.cvsCreated === 0 && (
-          <Card className="mt-8 border-dashed border-2">
+          <Card className="mt-8 glass-card border-2 border-dashed border-primary/30 float">
             <CardContent className="flex flex-col items-center justify-center py-12 text-center">
-              <div className="h-16 w-16 rounded-full bg-muted flex items-center justify-center mb-4">
-                <User className="h-8 w-8 text-muted-foreground" />
+              <div className="h-16 w-16 rounded-full bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center mb-4 glow-primary">
+                <User className="h-8 w-8 text-primary" />
               </div>
-              <h3 className="text-lg font-semibold mb-2">Starten Sie jetzt</h3>
+              <h3 className="text-lg font-semibold mb-2 gradient-text">Starten Sie jetzt</h3>
               <p className="text-muted-foreground max-w-md mb-6">
                 Erstellen Sie Ihren ersten professionellen deutschen Lebenslauf in wenigen Minuten.
               </p>
               <Link href="/">
-                <Button size="lg" className="gap-2">
+                <Button size="lg" className="gap-2 btn-hover pulse-glow">
                   <Plus className="h-4 w-4" />
                   Lebenslauf erstellen
                 </Button>
