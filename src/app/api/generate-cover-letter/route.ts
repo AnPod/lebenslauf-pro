@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import OpenAI from 'openai';
-import { redactPII } from '@/lib/pii-redaction';
+import { redactPII, redactTextPII } from '@/lib/pii-redaction';
 
 const openai = new OpenAI({
   apiKey: process.env.GROQ_API_KEY,
@@ -13,6 +13,7 @@ export async function POST(request: NextRequest) {
 
     // Redact PII before sending to OpenAI
     const redactedCVData = redactPII(cvData);
+    const redactedJobDescription = redactTextPII(jobDescription);
 
     const toneInstructions: Record<string, string> = {
       'Professional': 'professionell und sachlich',
@@ -32,7 +33,7 @@ Informationen zum Bewerber:
 - Ausbildung: ${redactedCVData.education.map((e: any) => e.degree).join(', ')}
 
 Stellenbeschreibung:
-${jobDescription}
+${redactedJobDescription}
 
 Das Anschreiben sollte:
 1. Deutsch sein (${selectedTone})

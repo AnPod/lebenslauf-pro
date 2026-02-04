@@ -100,9 +100,14 @@ export function redactTextPII(text: string): string {
   );
 
   // Addresses (street + number pattern)
-  // German format: Musterstraße 123
+  // German format: Musterstraße 123 (street type as part of name)
   redacted = redacted.replace(
-    /\b[A-ZÄÖÜ][a-zäöüß]+(?:straße|str\.|weg|gasse|platz|allee|damm|ring)\s*\d+[a-zA-Z]?\b/gi,
+    /\b[A-ZÄÖÜ][a-zäöüß]+(?:straße|str\.|gasse|platz|allee|damm|ring)\s*\d+[a-zA-Z]?\b/gi,
+    '[ADRESSE]'
+  );
+  // German format: Berliner Weg 10 (street name followed by street type)
+  redacted = redacted.replace(
+    /\b[A-ZÄÖÜ][a-zäöüß]+\s+(?:weg|straße|gasse|platz|allee|damm|ring)\s+\d+[a-zA-Z]?\b/gi,
     '[ADRESSE]'
   );
   // International format: 123 Main Street
@@ -135,13 +140,15 @@ export function redactTextPII(text: string): string {
     'Bonn', 'Münster', 'Karlsruhe', 'Mannheim', 'Augsburg', 'Wiesbaden',
     'New', 'York', 'London', 'Paris', 'Madrid', 'Rome', 'Vienna',
     'Prague', 'Warsaw', 'Budapest', 'Zurich', 'Amsterdam', 'Brussels',
+    'Munich', 'Mann', 'Frau', 'Kind', 'Jahr', 'Zeit', 'Tag', 'Woche',
+    'Monat', 'Stunde', 'Minute', 'Sekunde', 'Weg', 'Straße', 'Platz',
   ]);
 
   // Pattern for names: Capital letter followed by lowercase letters, 2-20 chars
   // Only redact if not in common words and appears in certain contexts
   redacted = redacted.replace(
     /\b([A-ZÄÖÜ][a-zäöüß]{1,19})\b/g,
-    (match, name) => {
+    (match, name, offset) => {
       // Don't redact if it's a common word
       if (commonWords.has(name)) {
         return match;
@@ -153,6 +160,15 @@ export function redactTextPII(text: string): string {
       // Don't redact if it's followed by common title patterns
       if (match.match(/(?:straße|str\.|weg|gasse|platz|allee|damm|ring|Street|St|Avenue|Ave|Road|Rd|Lane|Ln|Drive|Dr|Boulevard|Blvd|Way|Court|Ct|Place|Pl)$/i)) {
         return match;
+      }
+      // Don't redact if it's followed by company suffixes (check next word in original text)
+      const nextWordMatch = text.substring(offset + match.length).match(/^\s+([A-ZÄÖÜ][a-zA-Zäöüß]{1,19})/);
+      if (nextWordMatch) {
+        const nextWord = nextWordMatch[1];
+        // Check if next word is a company abbreviation or common word
+        if (commonWords.has(nextWord) || ['GmbH', 'AG', 'KG', 'Inc', 'LLC', 'Ltd', 'Co', 'Corp'].includes(nextWord)) {
+          return match;
+        }
       }
       return '[NAME]';
     }
